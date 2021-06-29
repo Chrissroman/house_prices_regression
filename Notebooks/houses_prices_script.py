@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import os
+import pathlib
 
 from scipy import stats
 from scipy.stats import norm, skew
@@ -48,12 +49,16 @@ print("The size of train dataset is {} and the test is {}"
 Let's explore these ouliers in principal variables float's
 
 """
+path_plots = os.chdir(os.path.join(os.getcwd(),'Plots'))
+
 fig, ax = plt.subplots(figsize = (16,9))
 ax.scatter(x = train['GrLivArea'], y = train['SalePrice'])
-plt.xticks(fontsize=15)
-plt.yticks(fontsize=15)
-plt.xlabel('SalePrice', fontsize=20)
-plt.ylabel('SalePrice', fontsize=20)
+plt.xticks(fontsize=10)
+plt.yticks(fontsize=10)
+plt.xlabel('GRLivArea', fontsize=15)
+plt.ylabel('SalePrice', fontsize=15)
+plt.title("GRLivArea vs SalesPrice", fontsize = 20)
+plt.savefig("outliers_1")
 plt.show()
 
 """
@@ -68,10 +73,12 @@ train = train.drop(train[(train['GrLivArea'] > 4000) & (train['SalePrice'] < 300
 # Check the graphic again
 fig, ax = plt.subplots(figsize = (16,9))
 ax.scatter(x = train['GrLivArea'], y = train['SalePrice'])
-plt.xticks(fontsize=15)
-plt.yticks(fontsize=15)
-plt.xlabel('GrLivArea', fontsize = 20)
-plt.ylabel('SalePrice', fontsize = 20)
+plt.xticks(fontsize=10)
+plt.yticks(fontsize=10)
+plt.xlabel('GRLivArea', fontsize=15)
+plt.ylabel('SalePrice', fontsize=15)
+plt.title("GRLivArea vs SalePrice without Ouliers", fontsize = 20)
+plt.savefig("outliers_2")
 plt.show()
 
 """                         NORMALIZE TARGET VARIABLE
@@ -81,21 +88,23 @@ We can need to do some analysis on this SalePrice variable. These is variable pr
 """
 
 # Target Variable Analysis
-sns.distplot(train['SalePrice'], fit=norm)
+fig, ax = plt.subplots(figsize=(12,6), nrows = 1, ncols=2)
+sns.distplot(train['SalePrice'], fit=norm, ax = ax[0])
+ax[0].set_title("SalePrice Distribution")
 
 # Get the fitted parameters used by the fuction
 (mu, sigma) = norm.fit(train['SalePrice'])
 print("The Parameters mu = {:.2f} and sigma = {:.2f}".format(mu, sigma))
 
-plt.legend(['Normal dist. ($\mu=$ {:.2f} and $\sigma=$ {:.2f})'.format(mu, sigma)],
+ax[0].legend(['Normal dist. ($\mu=$ {:.2f} and $\sigma=$ {:.2f})'.format(mu, sigma)],
            loc = 'best')
 
-plt.ylabel("Frecuency")
-plt.title("SalePrice Distribution")
+ax[0].set_ylabel("Frecuency")
 
 # Get also a the Probality Plot
-fig = plt.figure()
-res = stats.probplot(train['SalePrice'], plot = plt)
+#fig = plt.figure()
+ax[1] = stats.probplot(train['SalePrice'], plot = plt)
+fig.suptitle("SalePrice before at transform")
 plt.show()
 
 
@@ -106,21 +115,23 @@ we need to transform this variable at a normal distribution.
 
 train['SalePrice'] = np.log1p(train['SalePrice'])
 
-sns.distplot(train['SalePrice'], fit=norm)
+# Target Variale after of transformation.
+fig, ax = plt.subplots(figsize=(12,6), nrows = 1, ncols = 2)
+sns.distplot(train['SalePrice'], fit=norm, ax = ax[0])
+ax[0].set_title('SalePrice Distribution')
 
 # Get the fitted parameters used by the fuction
 (mu, sigma) = norm.fit(train['SalePrice'])
 print("The Parameters mu = {:.2f} and sigma = {:.2f}".format(mu, sigma))
 
-plt.legend(['Normal dist. ($\mu=$ {:.2f} and $\sigma=$ {:.2f})'.format(mu, sigma)],
+ax[0].legend(['Normal dist. ($\mu=$ {:.2f} and $\sigma=$ {:.2f})'.format(mu, sigma)],
            loc = 'best')
 
-plt.ylabel("Frecuency")
-plt.title("SalePrice Distribution")
+ax[0].ylabel("Frecuency")
 
 # Get also a the Probality Plot
-fig = plt.figure()
-res = stats.probplot(train['SalePrice'], plot = plt)
+ax[1] = stats.probplot(train['SalePrice'], plot = plt)
+fig.suptitle("SalePrice after at transformation - log(1+x)")
 plt.show()
 
 """
@@ -968,8 +979,8 @@ joblib.dump(GBR_model_def, filename)
 """
     Linear Regression Ordinary have a disadvantage clearly, the model take all
 features with the same importance and cannot penalty those features with little
- influence as well the random forest model and gradient boosting regression 
- do yet.
+influence as well the random forest model and gradient boosting regression 
+do yet.
 
 LASSO model is a Linear Regression with Lambda Factor that allows to penalty 
 those features not offer importance in the model. Is evident that a 

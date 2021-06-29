@@ -567,6 +567,7 @@ X_train, X_test, y_train, y_test = train_test_split(data_train, y_target,
 #                         RANDOM FOREST REGRESSION
 
 # Load Model was training 
+os.chdir('R:\Respaldo\Christian\Kaggle\Houses Prices\models_sav')
 forest = joblib.load('random_forest_model.sav')
 
 forest = RandomForestRegressor(n_jobs = multiprocessing.cpu_count() - 1, 

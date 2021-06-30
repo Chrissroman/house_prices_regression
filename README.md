@@ -25,7 +25,6 @@ All phases it is contained in this notebook is of the biggest common:
 
 3. Selection of the Best Model.
 * Submission of results
-* 
 
 ## Note for futures branch or revision
 

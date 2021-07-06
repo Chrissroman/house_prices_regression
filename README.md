@@ -21,13 +21,14 @@ All phases it is contained in this notebook is of the biggest common:
 2. Modeling
 * Random Forest Regression - prediction SalesPrice with classical forest regression with Scikit-Learn
 * Gradient Boosting Regression - with gradient boosting tree techniques, cross-validation and grid search to find the best model with optimal hyperparameters.
-* Linear Regression Techniques - With some techniques linear regression with penalty as LASSO and Bayesian Ridge.
+* Linear Regression Techniques - With some techniques linear regression with penalty as LASSO.
 
 3. Selection of the Best Model.
 * Submission of results
-* 
 
 ## Note for futures branch or revision
 
-This repository in fold Notebooks for now, only is _"houses_prices_script.py"_ in repository. In the next branches, we will adding __jupyter notebook__ format which will be the same that notebooks in Kaggle.
+Now, the _ "Jupyter Notebook" _ is in the Notebook folder. This notebook is the same that is in _Kaggle_. If you have _Kaggle_ account and like it this work, I would love you to put liked it, This would help me at I will continue motivated !.
+
+I will try to do new updates in the next future, this work is very far of be finished, the score can be improved for example, with stacked machine learning.
 

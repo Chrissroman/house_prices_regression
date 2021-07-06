@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import os
-import pathlib
 
 from scipy import stats
 from scipy.stats import norm, skew
@@ -89,7 +88,8 @@ We can need to do some analysis on this SalePrice variable. These is variable pr
 
 # Target Variable Analysis
 fig, ax = plt.subplots(figsize=(12,6), nrows = 1, ncols=2)
-sns.distplot(train['SalePrice'], fit=norm, ax = ax[0])
+sns.histplot(train['SalePrice'], kde = True, stat = 'frequency', 
+             hue_norm = norm, ax = ax[0])
 ax[0].set_title("SalePrice Distribution")
 
 # Get the fitted parameters used by the fuction
@@ -104,7 +104,8 @@ ax[0].set_ylabel("Frecuency")
 # Get also a the Probality Plot
 #fig = plt.figure()
 ax[1] = stats.probplot(train['SalePrice'], plot = plt)
-fig.suptitle("SalePrice before at transform")
+fig.suptitle("SalePrice before at transform", fontsize = 15)
+fig.savefig("SalePrice_dist1")
 plt.show()
 
 
@@ -117,7 +118,8 @@ train['SalePrice'] = np.log1p(train['SalePrice'])
 
 # Target Variale after of transformation.
 fig, ax = plt.subplots(figsize=(12,6), nrows = 1, ncols = 2)
-sns.distplot(train['SalePrice'], fit=norm, ax = ax[0])
+sns.histplot(train['SalePrice'], kde = True, stat = 'frequency', 
+             hue_norm = norm, ax = ax[0])
 ax[0].set_title('SalePrice Distribution')
 
 # Get the fitted parameters used by the fuction
@@ -127,11 +129,12 @@ print("The Parameters mu = {:.2f} and sigma = {:.2f}".format(mu, sigma))
 ax[0].legend(['Normal dist. ($\mu=$ {:.2f} and $\sigma=$ {:.2f})'.format(mu, sigma)],
            loc = 'best')
 
-ax[0].ylabel("Frecuency")
+ax[0].set_ylabel("Frecuency")
 
 # Get also a the Probality Plot
 ax[1] = stats.probplot(train['SalePrice'], plot = plt)
-fig.suptitle("SalePrice after at transformation - log(1+x)")
+fig.suptitle("SalePrice after at transformation - log(1+x)", fontsize = 15)
+fig.savefig("SalePrice_dist2")
 plt.show()
 
 """
@@ -196,6 +199,8 @@ sns.barplot(x = isnull_before.index, y = '% Null', palette = 'Blues_d',
 plt.xlabel('Features', fontsize = 18)
 plt.ylabel('% Null', fontsize = 18)
 plt.title("Percent of missing values by feature", fontsize = 20)
+plt.savefig("missing_data")
+plt.show()
 
 # could have importance that we see the correlations level eache feature
 corr_all = train.corr(method = 'pearson')
@@ -206,10 +211,12 @@ mask = np.zeros_like(corr_all)
 mask[np.triu_indices_from(mask)] = True
 with sns.axes_style("white"):
     fig, ax = plt.subplots(figsize = (32, 18))
-    fig.suptitle('Matrix of correlations', fontsize = 20)
+    fig.suptitle('Matrix of correlations', fontsize = 35)
     ax = sns.heatmap(corr_all, linewidths=0.1, vmin = -0.5, annot = True,
                      annot_kws= {'size' :10}, fmt = '.1g' ,vmax = 0.9, square = True, 
                      mask = mask, cmap = "vlag")
+    ax.tick_params(axis = 'both', labelsize = 20)
+    fig.savefig("matrix_corr")
 
 """                          IMPUTING MISSING VALUES                       """
 
@@ -419,18 +426,21 @@ print('Features selection: \n', feats_bias)
 n_cols = 3
 n_rows = ceil(len(feats_bias)/n_cols)
 
-fig, ax = plt.subplots(ncols = n_cols , nrows = n_rows, figsize=(16,16))
+fig, ax = plt.subplots(ncols = n_cols , nrows = n_rows, figsize=(15,15))
 
 for i, col in enumerate(all_data[feats_bias]):
     
     axes = ax[i//n_cols, i%n_cols]
-    sns.distplot(all_data[col], fit = norm, kde = False, 
-                 ax = axes)
+    sns.histplot(all_data[col], stat = 'frequency',
+                 hue_norm = norm, kde = True, ax = axes)
     axes.legend(['bias: {:.2f}'.format(skew(all_data[col]))], 
                loc = 'best')
-    fig.suptitle(t = 'Features that are skewed with a value higher than |1.|', 
-                 fontsize = 20)
+    axes.tick_params(axis = 'both', labelsize = 12)
     plt.tight_layout()
+
+fig.suptitle(t = 'Features that are skewed with a value higher than |1.|', 
+                 fontsize = 20)
+fig.savefig("before_boxcox")
 
 
 ######################## TRANSFORMATION BOX COX (1 + X) ######################
@@ -500,19 +510,24 @@ for col in feats_bias:
 n_cols = 3
 n_rows = ceil(len(feats_bias)/n_cols)
 
-fig, ax = plt.subplots(ncols = n_cols , nrows = n_rows, figsize=(16,16))
+fig, ax = plt.subplots(ncols = n_cols , nrows = n_rows, figsize=(15,15))
 
 for i, col in enumerate(all_data_t[feats_bias]):
     
     axes = ax[i//n_cols, i%n_cols]
-    sns.distplot(all_data_t[col], fit = norm, kde = False, 
-                 ax = axes)
-    axes.legend(['bias: {:.2f}'.format(skew(all_data_t[col]))], 
+    sns.histplot(all_data_t[col], stat = 'frequency',
+                 hue_norm = norm, kde = True, ax = axes)
+    axes.legend(['bias: {:.2f}'.format(skew(all_data[col]))], 
                loc = 'best')
-    fig.suptitle(t = 'New distribution with Box-Cox transform method', 
-                 fontsize = 20)
+    axes.tick_params(axis = 'both', labelsize = 12)
     plt.tight_layout()
-    
+
+fig.suptitle(t = 'New distribution with Box-Cox transform method', 
+                 fontsize = 20)
+fig.savefig("after_boxcox")
+
+
+
 #######################
 
 #                               DUMMY VARIABLES
@@ -533,10 +548,6 @@ data_train = all_data_t[:n_train]
 data_test = all_data_t[n_test - 1:]
 print("Size of the data train is {}, and the data test: {}".format(data_train.shape, 
                                                                    data_test.shape))
-
-
-
-
 
 
 
@@ -568,6 +579,7 @@ from sklearn.metrics import mean_squared_error
 import joblib
 import multiprocessing
 
+# Create DataFrame with submission prediction 
 df_submission = pd.DataFrame()
 df_submission = np.log1p(submission)
 
@@ -578,26 +590,27 @@ X_train, X_test, y_train, y_test = train_test_split(data_train, y_target,
 #                         RANDOM FOREST REGRESSION
 
 # Load Model was training 
-os.chdir('R:\Respaldo\Christian\Kaggle\Houses Prices\models_sav')
+os.chdir('..')
+path_plots = os.chdir(os.path.join(os.getcwd(),'models_sav'))
 forest = joblib.load('random_forest_model.sav')
 
 forest = RandomForestRegressor(n_jobs = multiprocessing.cpu_count() - 1, 
-                               oob_score= True, n_estimators = 3500,
-                               criterion = 'mse', max_depth = 6, 
-                               max_features = 'auto') # -> Mean Squared Error as Support Criteria
+                               oob_score= True, n_estimators = 2500,
+                               criterion = 'mse', max_depth = 3, 
+                               max_features = 'sqrt') # -> Mean Squared Error as Support Criteria
 
 # Training the Random Forest
 forest.fit(X_train, y_train)
 
 df_regression = pd.DataFrame()
-df_regression['y_pred'] = y_test
+df_regression['y_test'] = y_test
 df_regression['rforest_pred'] = forest.predict(X_test)
 
 df_regression.head()
 
-df_regression['rforest_error2'] = (df_regression['rforest_pred'] - df_regression['y_pred']) **2
-rforest_error2 = sum(df_regression['rforest_error2'])/len(data_train)
-print("The Median Squared Error in Random Forest Regression: {:.4f}".format(rforest_error2))
+df_regression['rforest_error2'] = (df_regression['rforest_pred'] - df_regression['y_test']) **2
+rmse = np.sqrt(sum(df_regression['rforest_error2'])/len(data_train))
+print("The Root Median Squared Error in Random Forest Regression: {:.4f}".format(rmse))
 print("The Coefficient of Determination for Random Forest Regression Mothel is: {:.4f}".format(forest.oob_score_))
 
 
@@ -605,8 +618,8 @@ print("The Coefficient of Determination for Random Forest Regression Mothel is: 
 df_submission['random_forest'] = forest.predict(data_test)
 
 # Mean Squared Error of Data Testing prediction.
-print("The mean squared error of model between submission and predict:")
-print(mean_squared_error(df_submission['SalePrice'], df_submission['random_forest']))
+rmse = np.sqrt(mean_squared_error(df_submission['SalePrice'], df_submission['random_forest']))
+print("RMSE (Random Forest): {:.4f}".format(rmse))
 
 # The list of features importances for in Random Forest model.
 forest_feats = pd.DataFrame(forest.feature_importances_, 
@@ -622,9 +635,6 @@ forest_feats.head(20)
 filename = 'random_forest_model.sav'
 joblib.dump(forest, filename)
 # =========================
-
-
-
 
 
 
@@ -653,7 +663,7 @@ for n_estimators in estimator_range:
                                           criterion         ='mse',
                                           min_samples_split = 15,
                                           min_samples_leaf  = 10,
-                                          max_depth         = 4,
+                                          max_depth         = 3,
                                           max_features      = 'sqrt',
                                           #--> Range in percentage wherefore we consider the model is not getting better.
                                           tol               = 0.0001,  
@@ -691,13 +701,9 @@ ax.plot(estimator_range[np.argmin(cv_scores)], min(cv_scores),
 ax.set_xlabel("n_estimators")
 ax.set_ylabel("root_mean_squared_error")
 ax.set_title("The evolution CV Error vs N° of Estimators")
+fig.savefig('cvs_estimators_GBR')
 plt.grid()
 plt.legend()
-
-print("The N° Estimators optimal {}, where is reached a CV Min Error of {:.4f}".format(estimator_range[np.argmin(cv_scores)], min(cv_scores)))
-
-
-print("The Error (RMSE) of test in Gradient Boosting Regressor model is: {:.4f}".format(GBR_rsme))
 
 ##############################################################################
 #                   LEARNING RATE  N° of TREE - CROSS VALIDATION
@@ -728,7 +734,7 @@ for lr in learning_rates:
                             criterion           = 'mse',
                             min_samples_split   = 15,
                             min_samples_leaf    = 10,
-                            max_depth           = 4,
+                            max_depth           = 3,
                             max_features        = 'sqrt',
                             #--> Range in percentage wherefore we consider the model is not getting better.
                             tol                 = 0.0001,
@@ -773,6 +779,7 @@ for key, value in results.items():
     axes[1].set_xlabel("n_estimators")
     axes[1].set_ylabel("roor_mean_squared_error")
     axes[1].set_title("The Evolution CV Error vs Leraning Rate")
+    fig.savefig('cvs_lr_GBR')
     plt.grid()
     plt.legend()
 
@@ -794,7 +801,7 @@ for depth in max_depths:
     GBR_model = GradientBoostingRegressor(
                         loss = 'ls',
                         learning_rate     = 0.11,
-                        n_estimators      = 2500,
+                        n_estimators      = 3000,
                         min_samples_split = 15,
                         min_samples_leaf  = 10,
                         max_depth         = depth,
@@ -834,6 +841,7 @@ ax.plot(max_depths[np.argmin(cv_scores)], min(cv_scores), label = "Min Score",
 ax.set_xlabel("max_depth")
 ax.set_ylabel("root_mean_squared_error")
 ax.set_title("Th Evolution CV Error vs the Max Depth of Treee")
+fig.savefig('cvs_depth_GBR')
 plt.grid()
 plt.legend()
 
@@ -859,7 +867,7 @@ between the bias and variance.
 grid = joblib.load("GBR_grid_search.sav")
 
 param_grid = {'max_features': ['auto', 'sqrt', 'log2'],
-              'max_depth': [2, 4, 6, 10],
+              'max_depth': [2, 3, 4, 6],
               'subsample': [0.5, 1],
               'learning_rate': [0.001, 0.01, 0.1],
               'min_samples_split': [14, 16, 18],
@@ -873,7 +881,7 @@ param_grid = {'max_features': ['auto', 'sqrt', 'log2'],
 grid = GridSearchCV(
     estimator           = GradientBoostingRegressor(
                                 loss                = 'ls',
-                                n_estimators        = 2500,
+                                n_estimators        = 3000,
                                 random_state        = 2021,
                                 # For Early
                                 validation_fraction = 0.1,
@@ -914,12 +922,11 @@ print(grid.best_params_, ":", grid.best_score_, grid.scoring)
 
 
 """
-----> ---------------------------------------------------------------------
-      The best Hyperparamns finded:
-      ---------------------------------------------------------------------
-      {'learning_rate': 0.01, 'max_depth': 6, 'max_features': 'sqrt', 
-       'min_samples_leaf': 6, 'min_samples_split': 18, 'subsample': 0.5} : 
-          -0.11671019046652402 neg_root_mean_squared_error
+    ----> ---------------------------------------------------------------------
+    The best Hyperparamns finded (CV)
+    ---------------------------------------------------------------------
+    {'learning_rate': 0.01, 'max_depth': 3, 'max_features': 'sqrt', 'min_samples_leaf': 6,
+     'min_samples_split': 14, 'subsample': 0.5} : -0.11581964903121503 neg_root_mean_squared_error
 """
 
 #############################################################################
@@ -933,12 +940,12 @@ GBR_model_def = joblib.load("GBR_model.sav")
 
 GBR_model_def = GradientBoostingRegressor(
                                 loss              = 'ls',
-                                learning_rate     = 0.01,
-                                n_estimators      = 2500,
+                                learning_rate     = 0.001,
+                                n_estimators      = 3000,
                                 max_features      ='sqrt',
-                                min_samples_split = 18,
+                                min_samples_split = 14,
                                 min_samples_leaf  = 6,
-                                max_depth         = 6,
+                                max_depth         = 3,
                                 subsample         = 0.5,
                                 # For Early
                                 validation_fraction = 0.1,
@@ -947,29 +954,26 @@ GBR_model_def = GradientBoostingRegressor(
 
 GBR_model_def.fit(X_train, y_train)
 GBR_pred = GBR_model_def.predict(X_test)
-GBR_rmse = mean_squared_error(y_true = y_test,
-                              y_pred = GBR_pred)
+GBR_rmse = np.sqrt(mean_squared_error(y_true = y_test,
+                                      y_pred = GBR_pred))
 
 print(" The (RMSE) in Final Model of Gradient Boosting Regressor is: {:.4}".format(GBR_rmse))
 print("The Coefficient of Determination for Random Forest Regression Mothel is: {:.4f}".format(GBR_model_def.score(X_test, y_test)))
 
 df_regression['GBR_pred'] = GBR_pred
-df_regression['GBR_error2'] = (df_regression['GBR_pred'] - df_regression['y_pred'])**2
+df_regression['GBR_error2'] = (df_regression['GBR_pred'] - df_regression['y_test'])**2
 
 # Save Prediction of Data Testing on DataFrame 
 df_submission['GBR'] = GBR_model_def.predict(data_test)
 
 # Mean Squared Error of Data Testing prediction.
-print("The mean squared error of model between submission and predict:")
-print(mean_squared_error(df_submission['SalePrice'], df_submission['GBR']))
+rmse = np.sqrt(mean_squared_error(df_submission['SalePrice'], df_submission['GBR']))
+print("RMSE: {:.4f}".format(rmse))
 
 # ==== SAVE MODEL ====
 filename = 'GBR_model.sav'
 joblib.dump(GBR_model_def, filename)
 # ====================
-
-
-
 
 
 # ============================================================================
@@ -983,87 +987,34 @@ influence as well the random forest model and gradient boosting regression
 do yet.
 
 LASSO model is a Linear Regression with Lambda Factor that allows to penalty 
-those features not offer importance in the model. Is evident that a 
-Cross-Validation is necessary as an iterative method for finding this optimal 
-lambda.
-
-Scikit-Learn have a function LassoCV that have inconporated the cross-validation
-for the alpha (lambda) parameter. But, if we wanna to obtain a tunning model, using Grid Search
-should return all ideals hyperparameters. 
+those features not offer importance in the model.
 """
 
 ##############################################################################
-#                       TUNING LASSO MODEL USING GRID SEARCH
+#                                LASSO MODEL
 
-param_grid = {'alpha': np.arange(0, 1, 0.1),
-               'fit_intercept': [True, False],
-               'selection': ['cyclic', 'random'],
-    }
+# Charge library for the scaler data and build pipeline
+from sklearn.preprocessing import RobustScaler # <- escaler data
+from sklearn.pipeline import make_pipeline # Through pipeline funtion
 
-cv = RepeatedKFold(n_splits      = 10,
-                   n_repeats    = 1,
-                   random_state  = 2021)
+# we build model
+LASSO_model = make_pipeline(RobustScaler(), Lasso(alpha = 0.05, random_state = 2021))
 
-grid_search = GridSearchCV(
-                estimator = Lasso(random_state = 2021,
-                                  tol          = 0.001),
-                param_grid         = param_grid,
-                cv                 = cv,
-                scoring            = 'neg_root_mean_squared_error',
-                n_jobs             = multiprocessing.cpu_count()-1,
-                refit              = True,
-                verbose            = 0,
-                return_train_score = True             
-    )
-
-grid_search.fit(X_train, y_train)
-
-LASSO_model_gs = pd.DataFrame(grid_search.cv_results_)
-
-LASSO_model_gs.filter(regex = '(param.*|mean_t|std)') \
-    .drop(columns = 'params') \
-        .sort_values('mean_test_score', ascending = False) \
-            .head(8)
-
-
-# ===========================================================================
-# The best hyperparamns finded:
-print("---------------------------------------------------------------------")
-print("The best Hyperparamns finded (CV)")
-print("---------------------------------------------------------------------")
-print(grid_search.best_params_, ":", grid_search.best_score_, grid_search.scoring)    
-
-
-###### SAVE MODEL #####
-joblib.dump(grid_search, "LASO_grid_search.sav")
-######################
-
-##############################################################################
-#          MODEL OPTIMAL FOR LASSO REGRESSOR (Clasic Linear Regressor)
-
-# We build the definitve model with the best alpha that return the Mena Test
-# Score 
-
-LASSO_model = Lasso(alpha = 0.0005, random_state = 2021)
-
+#training
 LASSO_model.fit(X_train, y_train)
+
+# Return predictions in X testing set
 LASSO_pred = LASSO_model.predict(X_test)
 
+# We get metrics
 score = LASSO_model.score(X_test, y_test)
-
+rmse = np.sqrt(mean_squared_error(y_test, LASSO_pred))
+print("RMSE (Test): {:.4f}".format(rmse))
 print("The Coefficient of Determination of prediction is {:.4f}".format(score))
 
 # Save prediction of X_test in DataFrame Regression
 df_regression['LASSO_pred'] = LASSO_pred
-df_regression['LASSO_error2'] = (df_regression['LASSO_pred']- df_regression['y_pred']) **2
-
-# Save prediction of Data Testing in DataFrame Submission
-df_submission['LASSO'] = LASSO_model.predict(data_test) 
-
-# Mean Squared Error of Data Testing prediction.
-print("The mean squared error of model between submission and predict:")
-print(mean_squared_error(df_submission['SalePrice'], df_submission['LASSO']))
-
+df_regression['LASSO_error2'] = (df_regression['LASSO_pred'] - df_regression['y_test']) **2
 
 ############# SAVE MODEL #############
 filename = 'LASSO_model.sav'
@@ -1073,22 +1024,80 @@ joblib.dump(LASSO_model, filename)
 ##############################################################################
 #                               XGBOOST
 
+"""
+    With the library XGboost and Regressor module, we can build model to predict
+SalePrice value. We avoid overfitting through cross-validation. For lucky, XGboost has
+a module Regressor with cross-validation into it. 
+"""
+
 import xgboost as xgb
-print(xgb.__version__)
+
+##############################################################################
+#                       XGBoost - Cross Validation
+
+"""
+    This module requires these data to be transformed into the matrix. 
+XGBoost has function for this.
+"""
+
+data_dmatrix = xgb.DMatrix(data = data_train, label = y_target)
+dmatrix_test = xgb.DMatrix(data = data_test)
+
+# Hyperparameters
+params = {'objective': 'reg:squarederror', 'colsample_bytree': 0.3,
+          'subsample': 0.4, 'learning_rate': 0.01, 'max_depth': 4, 'alpha': 10}
 
 
-model = xgb.XGBRegressor(n_estimators     = 2500,
-                         max_depth        = 4,
-                         eta              = 0.01,
-                         subsample        = 0.7,
-                         colsample_bytree = 0.5)
+# Cross-Validation:
+cv_results = xgb.cv(dtrain = data_dmatrix, params = params, nfold = 10,
+                    num_boost_round = 3000, early_stopping_rounds= 10,
+                    metrics = 'rmse', as_pandas = True, seed = 2021)
 
-cv  = RepeatedKFold(n_splits = 10, n_repeats=1, random_state = 2021)
+cv_results.tail(1)
 
-scores = cross_val_score(model, X_train, y_train, scoring = 'neg_mean_squared_error',
-                         cv = cv, n_jobs = multiprocessing.cpu_count() -1)
+XGBoost_model = xgb.train(params = params, dtrain = data_dmatrix, num_boost_round = 3000)
+XGBoost_pred = XGBoost_model.predict(dmatrix_test)
 
-scores = np.absolute(scores)
+df_submission['XGBoost'] = XGBoost_pred
+
+rmse = np.sqrt(mean_squared_error(df_submission['SalePrice'], XGBoost_pred))
+print("RMSE (XGBoost - CV): {:.4f}".format(rmse))
+
+xgb.plot_tree(XGBoost_model, num_tree = 0)
+
+##############################################################################
+#                       SELECT THE BEST MODEL
+"""
+    We select the best model which it has the more little the root mean squared error 
+"""
+
+df_submission.head()
+
+models = df_submission.columns.tolist()
+models.remove('SalePrice')
+
+rmse_list = dict()
+for model in models:
+    rmse = np.sqrt(mean_squared_error(df_submission['SalePrice'], df_submission[model]))
+    rmse_list[model] = rmse
+    print(model)
+
+print(rmse_list)
+
+##############################################################################
+#                           SUBMISSION
+
+submission = pd.DataFrame()
+submission['Id'] = id_test
+submission['SalePrice'] = np.expm1(df_submission['random_forest'])
+submission.to_csv('submission.csv', index = False)
+
+
+plt.rcParams['figura.figsize'] = [20,20]
+xgb.plot_tree(XGBoost_model, num_tree = 0) 
+
+
+
 
 
 
